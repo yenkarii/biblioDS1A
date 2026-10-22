@@ -1,0 +1,23 @@
+info:
+  name: POST LIVROS
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/livros
+  body:
+    type: json
+    data: |-
+      {
+        "titulo": "Azumanga Daioh",
+        "descricao": "O Japão está sobre chamas, uma vez que Belzebu levantou de seu trono, agora reinando onde uma vez foi a cidade de Shibuya. Goku.",
+        "autor": "Goku 2"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
