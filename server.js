@@ -23,16 +23,29 @@ app.get('/', (req, res) => {
 // rota para listar todos os livros
 app.get('/livros', async (req, res) => {
     const sql = 'SELECT * FROM livros'
-    const [resp] = await conn.query(sql);
-    res.status(200).json(resp);
+    try {
+        const [resp] = await conn.query(sql);
+        res.status(200).json(resp);
+    } catch (erro) {
+        console.error(erro);
+        return res.status(500).json({ erro: "Erro interno ao tentar listar livros!" });
+    }
 });
 
 // rota para listar um único livro pelo id
 app.get('/livros/:id', async (req, res) => {
     const id = Number(req.id);
     const sql = 'SELECT * FROM livros WHERE id = ?'
-    const [resp] = await conn.query(sql, [id]);
-    res.status(200).json(resp);
+    try {
+        const [resp] = await conn.query(sql, [id]);
+        if (resp.length === 0) {
+            return res.status(404).json({ erro: "Livro não encontrado ou inexistente!" });
+        }
+        res.status(200).json(resp);
+    } catch (erro) {
+        console.error(erro);
+        return res.status(500).json({ erro: "Erro ao listar livro específico!" });
+    }
 });
 
 // rota para cadastrar um novo livro
@@ -44,18 +57,17 @@ app.post('/livros', async (req, res) => {
             erro: "É necessário informar título, descrição e autor da obra!"
         });
     }
-
-
     const sql = 'INSERT INTO livros (titulo, descricao, autor) VALUES (?, ?, ?)'
-    const [resp] = await conn.query(sql, [titulo, descricao, autor], (erro) => {
-        if (erro) {
-            return res.status(500).json({ erro: "Erro interno ao cadastrar livro!" });
-        }
-    });
-    res.status(201).json({
-        mensagem: "Livro cadastrado com sucesso!",
-        id: resp.insertId
-    });
+    try {
+        const [resp] = await conn.query(sql, [titulo, descricao, autor]);
+
+        res.status(201).json({
+            mensagem: "Livro cadastrado com sucesso!",
+            id: resp.insertId
+        });
+    } catch (erro) {
+        return res.status(500).json({ erro: "Erro interno ao cadastrar livro!" });
+    }
 });
 
 // rota para atualizar as informações de um livro
@@ -67,45 +79,49 @@ app.put('/livros/:id', async (req, res) => {
         return res.status(400).json({ erro: "É necessário informar título, descrição e o autor." })
     }
 
-    const sql  = 'UPDATE livros SET titulo = ?, descricao = ?, autor = ? WHERE id = ?';
+    const sql = 'UPDATE livros SET titulo = ?, descricao = ?, autor = ? WHERE id = ?';
+    try {
+        const [resp] = await conn.query(sql, [titulo, descricao, autor, id]);
 
-    const [resp] = await conn.query(sql, [titulo, descricao, autor, id], (erro, resultado) => {
-        if (erro) {
-            return res.status(500).json({
-                mensagem: "Erro interno ao atualizar livro!"
-            });
-        }
-        if (resultado.affectedRows === 0) {
+        if (resp.affectedRows === 0) {
             return res.status(404).json({
                 erro: "Livro não encontrado ou inexistente"
             });
         }
-    });
 
-    res.status(201).json({
-        mensagem: "Livro atualizado com sucesso!"
-    });
+        res.status(201).json({
+            mensagem: "Livro atualizado com sucesso!"
+        });
+
+    } catch (erro) {
+        return res.status(500).json({
+            mensagem: "Erro interno ao atualizar livro!"
+        });
+
+    }
 });
 
 // rota para excluir um livro da DB
 app.delete('/livros/:id', async (req, res) => {
     const id = Number(req.params.id);
-    if(!id){
-        return res.status(400).json({erro: "É necessário informar o ID nos parâmetros!"})
+    if (!id) {
+        return res.status(400).json({ erro: "É necessário informar o ID nos parâmetros!" })
     }
     const sql = 'DELETE FROM livros WHERE id = ?'
 
-    const [resp] = await conn.query(sql, [id], (erro) => {
-        if(erro) {
-            return res.status(500).json({erro: "Erro interno ao excluir livro!"})
+    try {
+        const [resp] = await conn.query(sql, [id]);
+
+        if (resp.affectedRows === 0) {
+            return res.status(404).json({ erro: "Livro não encontrado ou inexistente!" });
         }
-        if(resp.affectedRows === 0) {
-            return res.status(404).json({erro: "Livro não encontrado ou inexistente!"});
-        }
-    });
-    res.status(201).json({
-        mensagem: "Livro excluído com sucesso!"
-    });
+        res.status(201).json({
+            mensagem: "Livro excluído com sucesso!"
+        });
+    } catch (erro) {
+        return res.status(500).json({ erro: "Erro interno ao excluir livro!" })
+    }
+
 });
 
 //======================================================
