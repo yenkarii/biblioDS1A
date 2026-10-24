@@ -66,6 +66,7 @@ app.post('/livros', async (req, res) => {
             id: resp.insertId
         });
     } catch (erro) {
+        console.error(erro);
         return res.status(500).json({ erro: "Erro interno ao cadastrar livro!" });
     }
 });
@@ -94,6 +95,7 @@ app.put('/livros/:id', async (req, res) => {
         });
 
     } catch (erro) {
+        console.error(erro);
         return res.status(500).json({
             mensagem: "Erro interno ao atualizar livro!"
         });
@@ -119,6 +121,7 @@ app.delete('/livros/:id', async (req, res) => {
             mensagem: "Livro excluído com sucesso!"
         });
     } catch (erro) {
+        console.error(erro);
         return res.status(500).json({ erro: "Erro interno ao excluir livro!" })
     }
 
